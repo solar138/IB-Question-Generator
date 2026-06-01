@@ -1,16 +1,9 @@
-# React + Vite
+# IB Question Generator
+An AI-generated app to AI-generate multiple-choice IB syllabus questions. Currently supports IB Physics. Replace the syllabus file for other subjects (or have your AI do it.)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Installation
+Requires an Ollama instance, the exact prompt to the Ollama model can be adjusted as well as the specific Ollama model used.
 
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Usage
+Manually vet questions by choosing one of 5 options for each syllabus point or have the AI generate all of them at once. 
+Generated questions can be exported to a word document.

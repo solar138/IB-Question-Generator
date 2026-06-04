@@ -4,11 +4,137 @@ import {
   Paragraph, 
   TextRun, 
   PageBreak, 
-  HeadingLevel,
-  AlignmentType
+  AlignmentType,
+  Math as DocxMath,
+  MathRun,
+  MathSubScript,
+  MathSuperScript
 } from "docx";
-import { saveAs } from "file-saver";
-import { SYLLABUS } from "./syllabus";
+import fileSaver from "file-saver";
+const { saveAs } = fileSaver;
+import { SYLLABUS } from "./syllabus.js";
+import JSZip from "jszip";
+
+function parseMathToDocxMath(mathText) {
+  const children = [];
+  let remaining = mathText;
+
+  // Replace common LaTeX functions
+  remaining = remaining.replace(/\\text\{([^}]+)\}/g, "$1");
+  remaining = remaining.replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, "($1)/($2)");
+  remaining = remaining.replace(/\\sqrt\{([^}]+)\}/g, "√($1)");
+  remaining = remaining.replaceAll("\\text{sqrt}", "√");
+  
+  // Replace Greek letters/symbols
+  const symbolMap = {
+    "\\Delta": "Δ", "\\theta": "θ", "\\lambda": "λ", "\\alpha": "α",
+    "\\beta": "β", "\\gamma": "γ", "\\omega": "ω", "\\pi": "π", "\\bigpi": "π",
+    "\\rho": "ρ", "\\sigma": "σ", "\\tau": "τ", "\\phi": "φ",
+    "\\psi": "ψ", "\\Omega": "Ω", "\\epsilon": "ε", "\\eta": "η",
+    "\\nu": "ν", "\\approx": "≈", "\\pm": "±", "\\times": "×",
+    "\\cdot": "·", "\\degree": "°", "\\infty": "∞", "\\le": "≤",
+    "\\ge": "≥", "\\neq": "≠", "\\to": "→", "\\sqrt": "√"
+  };
+
+  Object.entries(symbolMap).forEach(([latex, unicode]) => {
+    remaining = remaining.replaceAll(latex, unicode);
+  });
+  
+  remaining = remaining.replaceAll("\\", "");
+
+  const regex = /(_\{([^}]+)\}|_(.)|\^\{([^}]+)\}|\^(.)|[^_^]+)/g;
+  let match;
+  let lastRun = null;
+  
+  while ((match = regex.exec(remaining)) !== null) {
+    const fullMatch = match[0];
+    
+    if (fullMatch.startsWith("_")) {
+      const text = match[2] || match[3];
+      if (lastRun) {
+        children.pop();
+        lastRun = new MathSubScript({
+          children: [lastRun],
+          subScript: [new MathRun(text)]
+        });
+        children.push(lastRun);
+      } else {
+        lastRun = new MathRun("_" + text);
+        children.push(lastRun);
+      }
+    } else if (fullMatch.startsWith("^")) {
+      const text = match[4] || match[5];
+      if (lastRun) {
+        children.pop();
+        lastRun = new MathSuperScript({
+          children: [lastRun],
+          superScript: [new MathRun(text)]
+        });
+        children.push(lastRun);
+      } else {
+        lastRun = new MathRun("^" + text);
+        children.push(lastRun);
+      }
+    } else {
+      const str = fullMatch;
+      // Strip any remaining XML control characters just in case (except tab, newline, carriage return)
+      const cleanStr = str.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+      if (cleanStr.length > 1) {
+        const prefix = cleanStr.slice(0, -1);
+        const lastChar = cleanStr.slice(-1);
+        children.push(new MathRun(prefix));
+        lastRun = new MathRun(lastChar);
+        children.push(lastRun);
+      } else if (cleanStr.length === 1) {
+        lastRun = new MathRun(cleanStr);
+        children.push(lastRun);
+      }
+    }
+  }
+
+  return new DocxMath({ children });
+}
+
+function parseTextWithMath(text, baseSize = 24) {
+  if (!text) return [];
+  
+  // Repair corrupted LaTeX tags from memory before parsing
+  let repairedText = text
+    .replace(/\x0Crac/g, '\\frac')
+    .replace(/\x08eta/g, '\\beta')
+    .replace(/\x09ext/g, '\\text')
+    .replace(/\x09heta/g, '\\theta')
+    .replace(/\x09au/g, '\\tau')
+    .replace(/\x0Dho/g, '\\rho')
+    .replace(/\x0Dight/g, '\\right')
+    .replace(/\x0Aeq/g, '\\neq')
+    .replace(/\x0Au/g, '\\nu');
+
+  const parts = repairedText.split("$");
+  const runs = [];
+  
+  parts.forEach((part, index) => {
+    // Strip XML control characters
+    const cleanPart = part.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    if (index % 2 === 0) {
+      if (cleanPart) {
+        runs.push(
+          new TextRun({
+            text: cleanPart,
+            font: "Arial",
+            size: baseSize
+          })
+        );
+      }
+    } else {
+      if (cleanPart) {
+        runs.push(parseMathToDocxMath(cleanPart));
+      }
+    }
+  });
+  
+  return runs;
+}
 
 export async function exportQuestionBankToDocx(questions) {
   if (!questions || questions.length === 0) {
@@ -47,8 +173,12 @@ export async function exportQuestionBankToDocx(questions) {
       spacing: { after: 400 }
     }),
     new Paragraph({
-      text: "⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯",
-      color: "000000",
+      children: [
+        new TextRun({
+          text: "----------------------------------------------------------------------",
+          color: "000000"
+        })
+      ],
       spacing: { after: 300 }
     })
   );
@@ -90,13 +220,15 @@ export async function exportQuestionBankToDocx(questions) {
             size: 24 // 12pt
           }),
           new TextRun({
-            text: `[${q.subtopicId}] ${q.question}`,
+            text: `[${q.subtopicId}] `,
             font: "Arial",
             size: 24 // 12pt
-          })
+          }),
+          ...parseTextWithMath(q.question, 24)
         ],
         spacing: { before: 400, after: 140 },
-        keepNext: true // Keeps the question text on the same page as option A
+        keepNext: true, // Keeps the question text on the same page as option A
+        keepLines: true // Prevents paragraph from breaking across pages
       })
     );
 
@@ -111,15 +243,12 @@ export async function exportQuestionBankToDocx(questions) {
               font: "Arial",
               size: 24 // 12pt
             }),
-            new TextRun({
-              text: q.options[letter],
-              font: "Arial",
-              size: 24 // 12pt
-            })
+            ...parseTextWithMath(q.options[letter], 24)
           ],
           indent: { left: 430 }, // 0.3 inches indentation
           spacing: { after: 140 },
-          keepNext: letter !== "D" // Keeps A with B, B with C, and C with D (guarantees no question cuts)
+          keepNext: letter !== "D", // Keeps A with B, B with C, and C with D (guarantees no question cuts)
+          keepLines: true // Prevents option from breaking across pages
         })
       );
     });
@@ -164,7 +293,8 @@ export async function exportQuestionBankToDocx(questions) {
           })
         ],
         spacing: { before: 140, after: 40 },
-        keepNext: true // Keeps the answer header on the same page as the explanation text
+        keepNext: true, // Keeps the answer header on the same page as the explanation text
+        keepLines: true // Prevents paragraph from breaking across pages
       }),
       new Paragraph({
         children: [
@@ -175,13 +305,10 @@ export async function exportQuestionBankToDocx(questions) {
             font: "Arial",
             size: 20
           }),
-          new TextRun({
-            text: q.explanation,
-            font: "Arial",
-            size: 20
-          })
+          ...parseTextWithMath(q.explanation, 20)
         ],
-        spacing: { after: 80 }
+        spacing: { after: 80 },
+        keepLines: true // Prevents paragraph from breaking across pages
       })
     );
   });
@@ -202,5 +329,81 @@ export async function exportQuestionBankToDocx(questions) {
   } catch (err) {
     console.error("Error creating DOCX file:", err);
     alert("Could not generate Word document. Please check console logs.");
+  }
+}
+
+export async function exportQuestionsToZip(questions) {
+  if (!questions || questions.length === 0) return;
+  const zip = new JSZip();
+
+  for (let i = 0; i < questions.length; i++) {
+    const q = questions[i];
+    const docChildren = [];
+    
+    // Add question content
+    docChildren.push(
+      new Paragraph({
+        children: [
+          new TextRun({
+            text: `Question ${i + 1} [${q.subtopicId}] `,
+            bold: true,
+            font: "Arial",
+            size: 24
+          }),
+          ...parseTextWithMath(q.question, 24)
+        ],
+        spacing: { before: 200, after: 140 }
+      })
+    );
+
+    ["A", "B", "C", "D"].forEach((letter) => {
+      docChildren.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${letter}.  `, bold: true, font: "Arial", size: 24 }),
+            ...parseTextWithMath(q.options[letter] || "", 24)
+          ],
+          indent: { left: 430 },
+          spacing: { after: 140 }
+        })
+      );
+    });
+
+    docChildren.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: "Correct Answer: ", bold: true, font: "Arial", size: 20 }),
+          new TextRun({ text: q.answer, bold: true, color: "16A34A", font: "Arial", size: 20 })
+        ],
+        spacing: { before: 200, after: 100 }
+      }),
+      new Paragraph({
+        children: [
+          new TextRun({ text: "Explanation: ", bold: true, font: "Arial", size: 20 }),
+          ...parseTextWithMath(q.explanation || "", 20)
+        ]
+      })
+    );
+
+    const doc = new Document({ sections: [{ children: docChildren }] });
+    
+    try {
+      const blob = await Packer.toBlob(doc);
+      // Fallback name if id is missing
+      const fileName = `Question_${i + 1}_${q.subtopicId ? q.subtopicId.replace(/\./g, "_") : 'unknown'}.docx`;
+      zip.file(fileName, blob);
+    } catch (err) {
+      console.error(`Error packing question ${i + 1}`, err);
+      // Create an error text file instead to signify it failed
+      zip.file(`Question_${i + 1}_ERROR.txt`, `Failed to generate DOCX for this question.\\n\\nError: ${err.message}\\n\\nQuestion Data:\\n${JSON.stringify(q, null, 2)}`);
+    }
+  }
+
+  try {
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    saveAs(zipBlob, `IB_Physics_Questions_Debug_${new Date().toISOString().split('T')[0]}.zip`);
+  } catch (err) {
+    console.error("Error creating ZIP file:", err);
+    alert("Could not generate ZIP document. Please check console logs.");
   }
 }

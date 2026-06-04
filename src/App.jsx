@@ -336,9 +336,6 @@ export default function App() {
         // Update state incrementally so progress bar and tree animate live!
         setQuestionsBank(currentBank);
         setAutoFillProgress({ current: i + 1, total: uncompletedSlots.length });
-
-        // Small delay to make the animation perfectly smooth and premium (50ms per slot)
-        await new Promise(resolve => setTimeout(resolve, 50));
       } catch (e) {
         console.error("Failed to generate mock question for auto-fill slot:", slot.id, e);
       }

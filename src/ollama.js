@@ -408,9 +408,6 @@ function shuffleQuestion(q) {
 // Main generation function
 export async function generateQuestions(host, model, topicId, subtopicId, subtopicName, level, isMock) {
   if (isMock) {
-    // Artificial delay to make it feel premium and realistic
-    await new Promise(resolve => setTimeout(resolve, 800));
-
     let selectedQuestions = [];
     // Check if we have specific high-quality mock questions
     if (MOCK_QUESTIONS_DB[subtopicId] && MOCK_QUESTIONS_DB[subtopicId][level]) {
@@ -458,6 +455,7 @@ Ensure the questions are accurate for the IB Physics HL syllabus, use correct te
       body: JSON.stringify({
         model: model,
         prompt: promptText,
+        max_tokens: 4096,
         stream: false,
         options: {
           temperature: 0.7

@@ -1,0 +1,410 @@
+[
+    {
+        "question": "What is a scalar quantity?",
+        "options": {
+            "A": "A quantity with only direction",
+            "B": "A quantity without either magnitude or direction",
+            "C": "A quantity with both magnitude and direction",
+            "D": "A quantity with only magnitude"
+        },
+        "answer": "D",
+        "explanation": "A scalar quantity has a numerical value, but no direction. Examples of scalar quantities include mass and time. The other options describe different types of physical quantities.",
+        "id": "A.1-remembering-0",
+        "topicId": "A",
+        "subtopicId": "A.1",
+        "subtopicName": "Kinematics",
+        "level": "remembering",
+        "timestamp": 1780537444835
+    },
+    {
+        "question": "An object undergoes motion where its velocity changes linearly with time. What can be concluded about the nature of this movement?",
+        "options": {
+            "A": "The average velocity must be zero if the motion is symmetrical.",
+            "B": "The net force acting on the object is variable and changes with time.",
+            "C": "The acceleration acting on the object is constant.",
+            "D": "The object's kinetic energy remains constant throughout the movement."
+        },
+        "answer": "C",
+        "explanation": "This tests the understanding of Newton's Second Law ($F = ma$) combined with kinematics. If velocity changes linearly with time, it means the slope of the v-t graph is constant. The slope of a v-t graph represents acceleration ($a$). Since $a$ is constant, and assuming no external non-conservative forces are applied (meaning net force is responsible for this change), the net force ($F = ma$) must also be constant.",
+        "id": "A.1-understanding-1",
+        "topicId": "A",
+        "subtopicId": "A.1",
+        "subtopicName": "Kinematics",
+        "level": "understanding",
+        "timestamp": 1780538767763
+    },
+    {
+        "question": "In a collision, what fundamental principle dictates that the total momentum of an isolated system remains constant?",
+        "options": {
+            "A": "The Equivalence Principle",
+            "B": "Newton's Third Law",
+            "C": "The Principle of Momentum Conservation",
+            "D": "The Law of Conservation of Energy"
+        },
+        "answer": "C",
+        "explanation": "Momentum conservation states that if no external force acts on a system, the total momentum before and after any interaction (like a collision) must remain constant.",
+        "id": "A.2-remembering-0",
+        "topicId": "A",
+        "subtopicId": "A.2",
+        "subtopicName": "Forces and momentum",
+        "level": "remembering",
+        "timestamp": 1780538822549
+    },
+    {
+        "question": "A block is pulled across a horizontal surface by a constant applied force, $F$. The resistance encountered is kinetic friction, $f_k$. If the magnitude of the resistive force were suddenly doubled to $2f_k$ (while $F$ remains unchanged), which statement correctly describes the resulting net acceleration compared to the original acceleration, $a_{orig}$?",
+        "options": {
+            "A": "The new acceleration would decrease by an amount proportional to $f_k$ (i.e., $a_{new} = a_{orig} - \\frac{f_k}{m}$).",
+            "B": "The new acceleration must be exactly half of the original acceleration ($0.5 a_{orig}$).",
+            "C": "The new acceleration would be less than the original acceleration, but greater than zero, provided $F > 2f_k$.",
+            "D": "The new acceleration would be exactly double the original acceleration ($2a_{orig}$)."
+        },
+        "answer": "C",
+        "explanation": "Understanding the dynamics requires applying Newton's second law ($\\vec{F}_{net} = m\\vec{a}$). The original net force is $\\vec{F}_{net, orig} = F - f_k$, giving $a_{orig} = \\frac{F - f_k}{m}$. If the resistive force doubles to $2f_k$ while $F$ remains constant, the new net force is $\\vec{F}_{net, new} = F - 2f_k$. The new acceleration is $a_{new} = \\frac{F - 2f_k}{m}$. Comparing $a_{new}$ to $a_{orig}$: Since $2f_k > f_k$, the subtraction term increases, thus decreasing the net force and the acceleration. Therefore, $a_{new} < a_{orig}$. Option C correctly captures this concept: the new acceleration is decreased by an amount related to $f_k$ (specifically $\\frac{f_k}{m}$), but it remains positive as long as $F > 2f_k$. Options A and D incorrectly assume linearity or simple scaling of forces that are subtracted from a constant input force. Option B is mathematically incorrect regarding the magnitude of the change.",
+        "id": "A.2-understanding-1",
+        "topicId": "A",
+        "subtopicId": "A.2",
+        "subtopicName": "Forces and momentum",
+        "level": "understanding",
+        "timestamp": 1780539223507
+    },
+    {
+        "question": "Mechanical energy ($E_{mech}$) of a system at any given point is defined as the total sum of which two types of energy?",
+        "options": {
+            "A": "Kinetic energy and potential energy",
+            "B": "Gravitational potential energy and elastic potential energy",
+            "C": "Chemical potential and thermal energy",
+            "D": "Work done and power input"
+        },
+        "answer": "A",
+        "explanation": "Mechanical energy ($E_{mech}$) is the total mechanical energy of a system. It is fundamentally defined as the sum of its kinetic energy ($E_k$, associated with motion) and its potential energy ($E_p$, stored due to position or deformation). While option C correctly names two common components, the general definition must include *all* forms of potential energy (e.g., elastic $E_{p, spring}$). However, among the choices provided, 'Kinetic energy' (the motion term) and a representative form of 'Potential energy' (like gravitational potential energy, $m g h$) are the most fundamental components used to define the concept for a general student recall question. ",
+        "id": "A.3-remembering-0",
+        "topicId": "A",
+        "subtopicId": "A.3",
+        "subtopicName": "Work, energy and power",
+        "level": "remembering",
+        "timestamp": 1780540725710
+    },
+    {
+        "question": "A worker pulls a heavy box across a horizontal floor using a rope. The applied tension force $F$ makes an angle $\\theta$ with the horizontal. If the worker increases the magnitude of the applied force $F$, but keeps the angle $\\theta$ constant, how does the work done ($W$) change?",
+        "options": {
+            "A": "The work done $W$ will decrease, as a larger force creates more resistance.",
+            "B": "The work done $W$ will remain constant because the displacement is horizontal.",
+            "C": "The work done $W$ will increase proportionally to the new magnitude of $F$.",
+            "D": "The work done $W$ depends only on the normal force required to support the box."
+        },
+        "answer": "C",
+        "explanation": "Work ($W$) is defined by the dot product of the force vector ($\\vec{F}$) and displacement vector ($\\vec{d}$): $W = F d \\cos(\\theta)$. In this scenario, the angle $\\theta$ (between $\\vec{F}$ and $\\vec{d}$) and the distance $d$ are held constant. Since $W$ is directly proportional to $F$ (when $d$ and $\\theta$ are fixed), increasing the magnitude of $F$ must increase the work done, according to the formula. Options B and D incorrectly suggest that displacement or normal force determines the constancy of work in this manner. Option C suggests a decrease due to resistance, but the definition of work only depends on the applied force component parallel to motion.",
+        "id": "A.3-understanding-1",
+        "topicId": "A",
+        "subtopicId": "A.3",
+        "subtopicName": "Work, energy and power",
+        "level": "understanding",
+        "timestamp": 1780540832396
+    },
+    {
+        "question": "Which physical quantity is defined as the turning effect of a force acting on an object, and its standard SI unit is Newton-metre ($\\text{N}\\cdot\\text{m}$)?",
+        "options": {
+            "A": "Work ($W$)",
+            "B": "Power ($P$)",
+            "C": "Momentum ($p$)",
+            "D": "Torque ($\\tau$)"
+        },
+        "answer": "D",
+        "explanation": "Torque ($\\tau$) is the rotational equivalent of force and measures the turning effect (moment) of a force. Its formula is $\\tau = r F \\sin(\\theta)$, where $r$ is the distance from the pivot point and $F$ is the applied force. The SI unit for torque, derived from the product of distance and force, is $\\text{N}\\cdot\\text{m}$. Work ($W$) has units of Joules ($\\text{J}$), power ($P$) has units of Watts ($\\text{W}$), and momentum ($p$) has units of $\\text{kg}\\cdot\\text{m/s}$.",
+        "id": "A.4-remembering-0",
+        "topicId": "A",
+        "subtopicId": "A.4",
+        "subtopicName": "Rigid body mechanics (HL only)",
+        "level": "remembering",
+        "timestamp": 1780540862081
+    },
+    {
+        "question": "A rotating flywheel has an initial moment of inertia $I_1$ and rotates at an angular velocity $\\omega_1$. If the flywheel changes its geometry such that its new moment of inertia becomes $I_2$, and assuming no external torque acts on the system, what can be concluded about the final angular velocity $\\omega_2$?",
+        "options": {
+            "A": "$\\omega_2 = \\omega_1 (I_2 / I_1)$",
+            "B": "The final angular momentum $L_2$ will depend on the external torque applied.",
+            "C": "$\\omega_2 = \\omega_1 (I_1 / I_2)$",
+            "D": "$\\omega_2$ must be maintained at $\\omega_1$ regardless of the change in inertia."
+        },
+        "answer": "C",
+        "explanation": "This question tests the understanding of the Law of Conservation of Angular Momentum. If no net external torque ($\\tau_{net}$) acts on a system, the total angular momentum ($L$) must remain constant: $L_1 = L_2$.\n$L = I\\omega$. Therefore, $I_1 \\omega_1 = I_2 \\omega_2$.\nTo find $\\omega_2$, we rearrange the equation:\n$$\\omega_2 = \\omega_1 (I_1 / I_2)$$\nOption A correctly shows that since $L$ is conserved, the final angular velocity ($\\omega_2$) must be inversely proportional to the change in moment of inertia ($I_2$). Option B incorrectly suggests direct proportionality. Option C violates the conservation law unless $I_1 = I_2$. Option D contradicts the premise that no external torque acts on the system.",
+        "id": "A.4-understanding-1",
+        "topicId": "A",
+        "subtopicId": "A.4",
+        "subtopicName": "Rigid body mechanics (HL only)",
+        "level": "understanding",
+        "timestamp": 1780541090253
+    },
+    {
+        "question": "Time dilation predicts that a clock moving relative to an observer appears to run slower. Which type of time measurement, according to Special Relativity, always represents the shortest possible time interval and is defined in the rest frame of the clock?",
+        "options": {
+            "A": "The proper time ($\\Delta t_0$)",
+            "B": "The elapsed time in the Earth's rest frame",
+            "C": "The coordinate time ($\\Delta T$)",
+            "D": "The dilated time ($\\Delta t$)"
+        },
+        "answer": "A",
+        "explanation": "The 'proper time' ($\\Delta t_0$) is defined as the time interval measured by a clock at rest relative to the events being timed. This measurement is always the shortest possible time interval, confirming that time dilation stretches (dilates) the observed time ($\\Delta t$) when viewed from an external frame.",
+        "id": "A.5-remembering-0",
+        "topicId": "A",
+        "subtopicId": "A.5",
+        "subtopicName": "Galilean and special relativity (HL only)",
+        "level": "remembering",
+        "timestamp": 1780541169809
+    },
+    {
+        "question": "Two particles are measured moving at speeds $v_1 = 0.6c$ and $v_2 = 0.3c$. Classically (Galilean relativity), their combined speed would be $0.9c$. However, relativistic effects must be considered. If the combination of these two velocities is calculated using special relativity, what physical understanding does this process enforce regarding the maximum possible observed velocity?",
+        "options": {
+            "A": "The observed speed will exceed $1.0c$, demonstrating that classical physics is fundamentally flawed.",
+            "B": "The derived speed must always be less than or equal to $c$, upholding the cosmic speed limit postulated by special relativity.",
+            "C": "Since both initial speeds are high, the resulting combined speed will be exactly $0.9c$ regardless of relativistic effects.",
+            "D": "The formula dictates that the combined velocity approaches zero as the speeds approach $c$."
+        },
+        "answer": "B",
+        "explanation": "Special relativity fundamentally establishes the constant 'c' as the ultimate speed limit for any energy or mass transfer. The correct velocity addition formula (the Lorentz transformation) is designed specifically to ensure that when combining any two speeds, the resulting observed speed never exceeds $c$. Option B correctly captures this foundational conceptual understanding of the theory. Options A and D violate established physics principles, while C misinterprets the behavior of the relativistic addition formula.",
+        "id": "A.5-understanding-1",
+        "topicId": "A",
+        "subtopicId": "A.5",
+        "subtopicName": "Galilean and special relativity (HL only)",
+        "level": "understanding",
+        "timestamp": 1780541230592
+    },
+    {
+        "question": "Which mode of heat transfer does not require a material medium to occur?",
+        "options": {
+            "A": "Conduction",
+            "B": "Radiation",
+            "C": "Convection",
+            "D": "Thermal expansion"
+        },
+        "answer": "B",
+        "explanation": "Radiation involves the emission and absorption of electromagnetic waves (like infrared light). These waves can travel through a vacuum, such as the space between Earth and the Sun. Conduction requires direct physical contact, while convection requires a fluid medium.",
+        "id": "B.1-remembering-0",
+        "topicId": "B",
+        "subtopicId": "B.1",
+        "subtopicName": "Thermal energy transfers",
+        "level": "remembering",
+        "timestamp": 1780541284407
+    },
+    {
+        "question": "A scientist measures the rate of heat loss ($P$) from an incandescent bulb at $T_H$ into its surroundings at $T_C$. If this measurement is performed first in ambient air, and then immediately repeated in a high vacuum (while keeping the temperature difference $\text{\\Delta T} = T_H - T_C$ constant), what change would be observed in the measured rate of heat loss?",
+        "options": {
+            "A": "The heat loss rate will increase sharply because the vacuum forces the object to cool via highly efficient electromagnetic radiation mechanisms.",
+            "B": "The heat loss rate will decrease, but not necessarily by a predictable amount, as conduction/convection are replaced entirely by radiation, which depends solely on absolute temperature ($T_H^4$).",
+            "C": "The heat loss rate will remain unchanged because the total energy transfer is fundamentally dependent only on $\text{\\Delta T}$ and $A$, regardless of the medium.",
+            "D": "The heat loss rate will decrease significantly because removing air eliminates conduction and convection, leaving only a smaller radiative component."
+        },
+        "answer": "D",
+        "explanation": "No explanation provided.",
+        "id": "B.1-understanding-1",
+        "topicId": "B",
+        "subtopicId": "B.1",
+        "subtopicName": "Thermal energy transfers",
+        "level": "understanding",
+        "timestamp": 1780541333723
+    },
+    {
+        "question": "If the concentration of a primary greenhouse gas significantly increases, what is the most direct physical consequence on Earth's climate system?",
+        "options": {
+            "A": "The Earth's albedo will decrease, causing more solar radiation absorption.",
+            "B": "The planet's equilibrium temperature will increase due to enhanced outgoing IR trapping.",
+            "C": "Incoming visible light radiation will be scattered into space at a higher rate.",
+            "D": "Atmospheric pressure will drop dramatically due to thermal expansion."
+        },
+        "answer": "B",
+        "explanation": "An increased concentration of greenhouse gases enhances the atmospheric opacity in the IR range. This means more outgoing longwave energy (heat) is absorbed and re-emitted back towards the surface, raising the planet's overall effective temperature required to maintain balance with incoming solar flux—this is the definition of an enhanced greenhouse effect leading to a higher equilibrium temperature. Options A, C, and D describe secondary or incorrect physical effects.",
+        "id": "B.2-remembering-0",
+        "topicId": "B",
+        "subtopicId": "B.2",
+        "subtopicName": "Greenhouse effect",
+        "level": "remembering",
+        "timestamp": 1780541382954
+    },
+    {
+        "question": "The greenhouse effect relies on the ability of specific atmospheric molecules to interact with electromagnetic radiation emitted by the Earth’s surface. Which statement accurately explains the physical requirement for a gas molecule to contribute strongly to the greenhouse effect?",
+        "options": {
+            "A": "The gas must have vibrational or rotational modes that allow it to absorb energy originating from incoming visible solar photons.",
+            "B": "The gas must be a highly reactive chemical species that absorbs energy across the entire electromagnetic spectrum uniformly.",
+            "C": "The gas must primarily scatter shortwave stellar radiation back into space, thereby enhancing radiative cooling.",
+            "D": "The gas must possess molecular bonds capable of absorbing and re-emitting the specific wavelengths of longwave infrared (IR) radiation characteristic of planetary temperatures."
+        },
+        "answer": "D",
+        "explanation": "The Earth radiates heat primarily as longwave IR radiation, following Planck's Law at low temperatures (around $T_{\text{surface}}$). For a gas to be a greenhouse gas, it must have molecular bonds that vibrate or rotate in response to incoming photons, allowing it to absorb and re-emit energy at these specific, characteristic IR wavelengths. Option A is incorrect because the absorption of visible light by GHGs is minimal. Option B describes an effect contrary to warming (radiative cooling). Option D is too general; the interaction must be selective for IR.",
+        "id": "B.2-understanding-1",
+        "topicId": "B",
+        "subtopicId": "B.2",
+        "subtopicName": "Greenhouse effect",
+        "level": "understanding",
+        "timestamp": 1780541453694
+    },
+    {
+        "question": "If an ideal gas sample, held at constant pressure, is heated such that its absolute temperature doubles ($T_2 = 2T_1$), what must happen to the volume of the gas?",
+        "options": {
+            "A": "The volume will double.",
+            "B": "The volume will decrease to half its original value.",
+            "C": "The volume will triple.",
+            "D": "The volume will remain constant because pressure is held constant."
+        },
+        "answer": "A",
+        "explanation": "According to Charles's Law, which states $V/T = \text{constant}$ (derived from $PV/nT = \text{constant}$), the volume is directly proportional to the absolute temperature. If the initial temperature $T_1$ increases such that $T_2 = 2T_1$, then the final volume $V_2$ must also double: $V_2 / V_1 = T_2 / T_1 = 2$. Therefore, the volume doubles.",
+        "id": "B.3-remembering-0",
+        "topicId": "B",
+        "subtopicId": "B.3",
+        "subtopicName": "Gas laws",
+        "level": "remembering",
+        "timestamp": 1780541480609
+    },
+    {
+        "question": "A sample of gas undergoes a process where its pressure ($P$) is increased and its temperature ($T$) is decreased. If the initial volume is $V_1$, what must happen to the final volume ($V_2$) relative to $V_1$?",
+        "options": {
+            "A": "The change in volume depends only on the absolute temperature, regardless of pressure changes.",
+            "B": "The final volume $V_2$ must remain equal to the initial volume $V_1$.",
+            "C": "The final volume $V_2$ will be larger than the initial volume $V_1$.",
+            "D": "The final volume $V_2$ will be smaller than the initial volume $V_1$."
+        },
+        "answer": "D",
+        "explanation": "We use the combined gas law: $\frac{P_1 V_1}{T_1} = \frac{P_2 V_2}{T_2}$. We are given that $P$ increases ($P_2 > P_1$) and $T$ decreases ($T_2 < T_1$). To solve for $V_2$: $V_2 = V_1 \\left( \\frac{P_1}{P_2} \\right) \\left( \\frac{T_2}{T_1} \\right)$. Since $P_1/P_2$ is less than 1 (because pressure increased), and $T_2/T_1$ is also less than 1 (because temperature decreased), both ratios contribute to making the final volume smaller. Thus, $V_2 < V_1$. The combined effect of increasing $P$ and decreasing $T$ results in a significant reduction in volume. Option C is correct.",
+        "id": "B.3-understanding-1",
+        "topicId": "B",
+        "subtopicId": "B.3",
+        "subtopicName": "Gas laws",
+        "level": "understanding",
+        "timestamp": 1780541528398
+    },
+    {
+        "question": "What characterizes an adiabatic process in thermodynamics?",
+        "options": {
+            "A": "The volume ($V$) of the system does not change during the process.",
+            "B": "The pressure ($P$) is maintained at a constant value throughout the process.",
+            "C": "No heat transfer occurs between the system and its surroundings ($Q = 0$).",
+            "D": "The internal energy ($\\Delta U$) remains constant, regardless of work done."
+        },
+        "answer": "C",
+        "explanation": "An adiabatic process is defined physically as one where no heat energy ($Q$) crosses the boundaries of the system. Therefore, $Q=0$. This leads to the simplified First Law: $\\Delta U = -W$. Option A provides the precise definition based on heat transfer. Option B describes an isothermal process if it were also cyclic (or specific conditions), but not the defining feature; $\\Delta U$ changes unless work is zero or $Q=0$ and $W=0$. Option C defines an isobaric path. Option D defines an isochoric path.",
+        "id": "B.4-remembering-0",
+        "topicId": "B",
+        "subtopicId": "B.4",
+        "subtopicName": "Thermodynamics (HL only)",
+        "level": "remembering",
+        "timestamp": 1780541623372
+    },
+    {
+        "question": "A student attempts to melt $0.50 \\text{ kg}$ of ice at $0^{\\circ}\\text{C}$. Assuming no heat loss, how much energy (in Joules) is required solely for this phase change? Use the latent heat of fusion for water, $L_f = 3.34 \\times 10^5 \\text{ J/kg}$.",
+        "options": {
+            "A": "$3.34 \\times 10^5 \\text{ J}$",
+            "B": "$1670 \\text{ J}$",
+            "C": "$167,000 \\text{ J}$",
+            "D": "$82,000 \\text{ J}$"
+        },
+        "answer": "C",
+        "explanation": "The process described is a phase change (solid ice to liquid water) occurring at a constant temperature ($0^{\\circ}\\text{C}$). Therefore, only the latent heat of fusion ($L_f$) is required. The energy $Q$ needed is given by $Q = m L_f$. Substituting the values: $Q = (0.50 \\text{ kg})(3.34 \\times 10^5 \\text{ J/kg}) = 167,000 \\text{ J}$. Options B and D are incorrect calculations of mass or latent heat. Option C incorrectly uses the full latent heat value rather than multiplying by the given mass.",
+        "id": "B.4-understanding-1",
+        "topicId": "B",
+        "subtopicId": "B.4",
+        "subtopicName": "Thermodynamics (HL only)",
+        "level": "understanding",
+        "timestamp": 1780541689897
+    },
+    {
+        "question": "According to Ohm's Law, resistance ($R$) in an electrical circuit quantifies which physical property?",
+        "options": {
+            "A": "The rate of energy transfer per unit time (measured in Watts).",
+            "B": "The opposition to the flow of electric current, measured in Ohms.",
+            "C": "The total amount of charge passing through a point (measured in Coulombs).",
+            "D": "The potential difference applied across a component (measured in Volts)."
+        },
+        "answer": "B",
+        "explanation": "Resistance ($R$) is defined as the ratio of voltage ($\\Delta V$) to current ($I$), $R = \\Delta V/I$. Physically, it represents the opposition that a material offers to the flow of electric charge. Option A describes Power ($P$). Option B describes Voltage ($V$). Option D describes Charge ($Q$).",
+        "id": "B.5-remembering-0",
+        "topicId": "B",
+        "subtopicId": "B.5",
+        "subtopicName": "Current and circuits",
+        "level": "remembering",
+        "timestamp": 1780541768951
+    },
+    {
+        "question": "A heating element (a resistor) is connected across a constant voltage source. If the ambient temperature increases significantly, causing the physical resistance ($R$) of the material to increase, how does this change impact the rate at which electrical power is dissipated as heat?",
+        "options": {
+            "A": "The dissipated power will increase because higher temperatures typically lead to increased kinetic energy and thus greater heat loss.",
+            "B": "The dissipated power remains constant because the voltage source maintains a fixed potential difference, regardless of the resistor's resistance change.",
+            "C": "The dissipated power decreases because the increasing resistance limits the current flow ($I = V/R$), leading to less total power dissipation ($P = V I$).",
+            "D": "The circuit must reach equilibrium where $V=IR$, meaning that as $R$ increases, $I$ also increases proportionally to maintain constant power."
+        },
+        "answer": "C",
+        "explanation": "For a fixed voltage source $V$: \n1. **Resistance Change:** As ambient temperature increases, the resistance $R$ of the metal generally increases (assuming it is not a specialized semiconductor). \n2. **Current Change:** According to Ohm's Law, $I = V/R$. Since $V$ is constant and $R$ increases, the current $I$ must decrease.\n3. **Power Dissipation:** The power dissipated as heat is given by $P = V I$. Substituting $I$: $P = V (V/R) = V^2/R$. As $R$ increases, the term $1/R$ decreases, meaning the total dissipated power $P$ must decrease. Option C accurately describes this physical and mathematical relationship.",
+        "id": "B.5-understanding-1",
+        "topicId": "B",
+        "subtopicId": "B.5",
+        "subtopicName": "Current and circuits",
+        "level": "understanding",
+        "timestamp": 1780541980528
+    },
+    {
+        "question": "In Simple Harmonic Motion (SHM), what is the mathematical relationship between angular frequency ($\\omega$) and the period ($T$)?",
+        "options": {
+            "A": "$T = 2\\pi \\omega$",
+            "B": "$\\omega = \frac{1}{2\tau} T$",
+            "C": "$\\omega = 2\\pi / T$",
+            "D": "$\\omega = T / (2\\pi)$"
+        },
+        "answer": "C",
+        "explanation": "The period ($T$) is the time taken for one complete oscillation, and angular frequency ($\\omega$) is defined as the rate of change of the phase angle in radians per second. By definition, $\\omega$ is related to $T$ by the formula $\\omega = \\frac{2\\pi}{T}$. This means that if an object oscillates with a period $T$, its angular frequency must be exactly $2\\pi/T$.",
+        "id": "C.1-remembering-0",
+        "topicId": "C",
+        "subtopicId": "C.1",
+        "subtopicName": "Simple harmonic motion",
+        "level": "remembering",
+        "timestamp": 1780542061176
+    },
+    {
+        "question": "In an ideal Simple Harmonic Motion system involving a mass $m$ attached to a spring with spring constant $k$, if the amplitude of oscillation is increased from $A_1$ to $A_2$ (where $A_2 > A_1$), how does this change affect the period of oscillation, $T$?",
+        "options": {
+            "A": "The period $T$ increases linearly with the amplitude.",
+            "B": "The period $T$ will increase proportionally to $\\sqrt{A_2/A_1}$.",
+            "C": "The period $T$ will decrease proportional to $A_2/A_1$.",
+            "D": "The period $T$ remains unchanged."
+        },
+        "answer": "D",
+        "explanation": "For an ideal SHM system described by Hooke's Law, the angular frequency $\\omega$ and thus the period $T$ are determined solely by the mass $m$ and the spring constant $k$: $T = 2\\pi\\sqrt\\frac{m}{k}$. This formula is independent of the amplitude $A$. This independence is a defining characteristic of Simple Harmonic Motion. Therefore, increasing the amplitude from $A_1$ to $A_2$ does not change the period.",
+        "id": "C.1-understanding-1",
+        "topicId": "C",
+        "subtopicId": "C.1",
+        "subtopicName": "Simple harmonic motion",
+        "level": "understanding",
+        "timestamp": 1780542140191
+    },
+    {
+        "question": "In wave mechanics, what does the term 'wavelength' ($\\lambda$) fundamentally represent?",
+        "options": {
+            "A": "The rate of change of energy transfer across a cross-section of the wave.",
+            "B": "The maximum vertical displacement from the equilibrium position, usually denoted by $A$.",
+            "C": "The number of oscillations that occur per unit time, measured in Hertz ($Hz$).",
+            "D": "The distance between two successive corresponding points on a wave (e.g., crest to crest or trough to trough)."
+        },
+        "answer": "D",
+        "explanation": "Wavelength ($\\lambda$) is defined as the spatial period of the wave, which is the distance required for the wave to complete one full cycle. This corresponds to the physical distance between any two consecutive identical points on the wave pattern (like crests or troughs). Option B describes frequency ($f$), Option C describes amplitude ($A$), and Option D relates more complex concepts like energy flux.",
+        "id": "C.2-remembering-0",
+        "topicId": "C",
+        "subtopicId": "C.2",
+        "subtopicName": "Wave model",
+        "level": "remembering",
+        "timestamp": 1780542154309
+    },
+    {
+        "question": "A wave is traveling through an ideal medium at a constant speed $v$. If the frequency ($f$) of the wave is doubled while maintaining its original speed, what must happen to the wavelength ($\\lambda$)?",
+        "options": {
+            "A": "It will remain unchanged.",
+            "B": "It will be halved.",
+            "C": "It will decrease by a factor of four.",
+            "D": "It will double."
+        },
+        "answer": "B",
+        "explanation": "The relationship between wave speed ($v$), frequency ($f$), and wavelength ($\\lambda$) is given by the equation $v = f\\lambda$. Since the medium is ideal and the speed ($v$) is constant, we can rearrange this to $\\lambda = v/f$. If the frequency ($f$) is doubled (multiplied by 2), the new relationship becomes $\\lambda_{new} = v/(2f) = \\frac{1}{2}(v/f)$. Therefore, the wavelength must be halved. This demonstrates an inverse proportionality between $f$ and $\\lambda$ when $v$ is constant.",
+        "id": "C.2-understanding-1",
+        "topicId": "C",
+        "subtopicId": "C.2",
+        "subtopicName": "Wave model",
+        "level": "understanding",
+        "timestamp": 1780543487851
+    }
+]

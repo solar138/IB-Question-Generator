@@ -20,18 +20,38 @@ import {
   BookOpen, 
   AlertCircle,
   Award,
-  ChevronDown
+  ChevronDown,
+  Archive
 } from "lucide-react";
 
 import { SYLLABUS, getFlattenedSlots } from "./syllabus";
 import { generateQuestions } from "./ollama";
-import { exportQuestionBankToDocx } from "./exporter";
+import { exportQuestionBankToDocx, exportQuestionsToZip } from "./exporter";
 
 export default function App() {
   // --- Persistent State (LocalStorage) ---
   const [questionsBank, setQuestionsBank] = useState(() => {
-    const saved = localStorage.getItem("ib_physics_questions_bank");
-    return saved ? JSON.parse(saved) : [];
+    let saved = localStorage.getItem("ib_physics_questions_bank");
+    if (saved) {
+      // One-time migration to fix corrupted LaTeX in previously saved questions
+      saved = saved.replace(/\x0Crac/g, '\\\\frac')
+                   .replace(/\x08eta/g, '\\\\beta')
+                   .replace(/\x09ext/g, '\\\\text')
+                   .replace(/\x09heta/g, '\\\\theta')
+                   .replace(/\x09au/g, '\\\\tau')
+                   .replace(/\x0Dho/g, '\\\\rho')
+                   .replace(/\x0Dight/g, '\\\\right')
+                   .replace(/\x0Aeq/g, '\\\\neq')
+                   .replace(/\x0Au/g, '\\\\nu')
+                   .replace(/\\\\bigpi/g, '\\\\pi')
+                   .replace(/\\\\text\{sqrt\}/g, '\\\\sqrt');
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
   });
 
   const [ollamaHost, setOllamaHost] = useState(() => {
@@ -42,9 +62,19 @@ export default function App() {
     return localStorage.getItem("ib_physics_ollama_model") || "llama3";
   });
 
-  const [isMockMode, setIsMockMode] = useState(() => {
-    const saved = localStorage.getItem("ib_physics_mock_mode");
-    return saved ? JSON.parse(saved) : true; // Default to true so it works out-of-the-box
+  const [providerMode, setProviderMode] = useState(() => {
+    const saved = localStorage.getItem("ib_physics_provider_mode");
+    return saved || "mock"; // Default to "mock"
+  });
+
+  const [geminiApiKey, setGeminiApiKey] = useState(() => {
+    return localStorage.getItem("ib_physics_gemini_key") || "";
+  });
+
+  const [geminiModel, setGeminiModel] = useState(() => {
+    const saved = localStorage.getItem("ib_physics_gemini_model");
+    const validModels = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-1.0-pro"];
+    return (saved && validModels.includes(saved)) ? saved : "gemini-1.5-flash";
   });
 
   const [theme, setTheme] = useState(() => {
@@ -63,6 +93,9 @@ export default function App() {
   const [expandedTopic, setExpandedTopic] = useState("A");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedChoices, setGeneratedChoices] = useState([]);
+  const [pregeneratedCache, setPregeneratedCache] = useState({});
+  const [isPregenerating, setIsPregenerating] = useState(false);
+  const [pregeneratingSlotId, setPregeneratingSlotId] = useState(null);
   const [ollamaStatus, setOllamaStatus] = useState("mock"); // 'connected', 'disconnected', 'mock'
   
   // Modals & Popups
@@ -89,13 +122,23 @@ export default function App() {
   }, [ollamaModel]);
 
   useEffect(() => {
-    localStorage.setItem("ib_physics_mock_mode", JSON.stringify(isMockMode));
-    if (isMockMode) {
+    localStorage.setItem("ib_physics_provider_mode", providerMode);
+    if (providerMode === "mock") {
       setOllamaStatus("mock");
+    } else if (providerMode === "gemini") {
+      setOllamaStatus(geminiApiKey ? "connected" : "disconnected");
     } else {
       checkOllamaConnection();
     }
-  }, [isMockMode]);
+  }, [providerMode, geminiApiKey]);
+
+  useEffect(() => {
+    localStorage.setItem("ib_physics_gemini_key", geminiApiKey);
+  }, [geminiApiKey]);
+
+  useEffect(() => {
+    localStorage.setItem("ib_physics_gemini_model", geminiModel);
+  }, [geminiModel]);
 
   useEffect(() => {
     localStorage.setItem("ib_physics_theme", theme);
@@ -105,24 +148,103 @@ export default function App() {
   useEffect(() => {
     if (currentSlot) {
       localStorage.setItem("ib_physics_current_slot_id", currentSlot.id);
-      // Reset generated options when navigating to a slot, unless we already selected a question for it
       const savedForSlot = questionsBank.find(q => q.id === currentSlot.id);
       if (savedForSlot) {
         setGeneratedChoices([savedForSlot]);
+        setShowExplanationIndex(null);
+      } else if (pregeneratedCache[currentSlot.id]) {
+        setGeneratedChoices(pregeneratedCache[currentSlot.id]);
+        setShowExplanationIndex(null);
+        
+        const newCache = { ...pregeneratedCache };
+        delete newCache[currentSlot.id];
+        setPregeneratedCache(newCache);
+        // Do not show toast here to avoid spamming the user when they click sidebar
       } else {
         setGeneratedChoices([]);
+        setShowExplanationIndex(null);
       }
-      setShowExplanationIndex(null);
       
       // Auto expand the active slot's topic
       setExpandedTopic(currentSlot.topicId);
     }
   }, [currentSlotId]);
 
+  // Background pregenerator
+  useEffect(() => {
+    const runPregenerator = async () => {
+      // If we are currently generating the main UI or already pregenerating, abort to save resources
+      if (isGenerating || isPregenerating) return;
+
+      // Find the next uncompleted slot
+      const currentIndex = slots.findIndex(s => s.id === currentSlotId);
+      if (currentIndex === -1) return;
+      
+      let nextIndex = (currentIndex + 1) % slots.length;
+      let nextSlotToGenerate = null;
+
+      for (let i = 0; i < slots.length; i++) {
+        const checkSlot = slots[nextIndex];
+        const isCompleted = questionsBank.some(q => q.id === checkSlot.id);
+        if (!isCompleted) {
+          nextSlotToGenerate = checkSlot;
+          break;
+        }
+        nextIndex = (nextIndex + 1) % slots.length;
+      }
+
+      // If there's a next slot, and it's not cached, pregenerate it silently
+      if (nextSlotToGenerate && !pregeneratedCache[nextSlotToGenerate.id]) {
+        setIsPregenerating(true);
+        setPregeneratingSlotId(nextSlotToGenerate.id);
+        try {
+          const questions = await generateQuestions(
+            ollamaHost,
+            ollamaModel,
+            nextSlotToGenerate.topicId,
+            nextSlotToGenerate.subtopicId,
+            nextSlotToGenerate.subtopicName,
+            nextSlotToGenerate.level,
+            providerMode,
+            geminiApiKey,
+            geminiModel
+          );
+          setPregeneratedCache(prev => ({
+            ...prev,
+            [nextSlotToGenerate.id]: questions
+          }));
+        } catch (err) {
+          console.error("Background pregeneration failed silently", err);
+        } finally {
+          setIsPregenerating(false);
+          setPregeneratingSlotId(null);
+        }
+      }
+    };
+
+    // Wait a brief moment to not block main thread renders
+    const timer = setTimeout(runPregenerator, 1500);
+    return () => clearTimeout(timer);
+  }, [currentSlotId, generatedChoices, questionsBank, isGenerating, isPregenerating]);
+
+  // Listen for background pregeneration finishing if we are actively waiting for it
+  useEffect(() => {
+    if (isGenerating && generatedChoices.length === 0 && pregeneratedCache[currentSlotId]) {
+      setGeneratedChoices(pregeneratedCache[currentSlotId]);
+      
+      const newCache = { ...pregeneratedCache };
+      delete newCache[currentSlotId];
+      setPregeneratedCache(newCache);
+      
+      setIsGenerating(false);
+      showToast(`Finished loading pre-generated choices for Topic ${currentSlot?.subtopicId}!`, "success");
+    }
+  }, [pregeneratedCache, isGenerating, currentSlotId, generatedChoices, currentSlot]);
+
   // Check Ollama Connection status
   const checkOllamaConnection = async () => {
-    if (isMockMode) {
-      setOllamaStatus("mock");
+    if (providerMode !== "ollama") {
+      setOllamaStatus(providerMode === "mock" ? "mock" : (geminiApiKey ? "connected" : "disconnected"));
       return;
     }
     try {
@@ -142,10 +264,31 @@ export default function App() {
 
   // Run initial connection test
   useEffect(() => {
-    if (!isMockMode) {
+    if (providerMode === "ollama") {
       checkOllamaConnection();
     }
   }, [ollamaHost]);
+
+  // Auto-render math equations with KaTeX whenever relevant state changes
+  useEffect(() => {
+    const renderMath = () => {
+      if (window.renderMathInElement) {
+        window.renderMathInElement(document.body, {
+          delimiters: [
+            { left: "$$", right: "$$", display: true },
+            { left: "$", right: "$", display: false },
+            { left: "\\(", right: "\\)", display: false },
+            { left: "\\[", right: "\\]", display: true }
+          ],
+          throwOnError: false
+        });
+      }
+    };
+    renderMath();
+    // Use a small timeout to catch any deferred React DOM rendering cycles
+    const timer = setTimeout(renderMath, 50);
+    return () => clearTimeout(timer);
+  }, [generatedChoices, questionsBank, currentSlotId, editingQuestion, showExplanationIndex]);
 
   // Toast Helper
   const showToast = (message, type = "success") => {
@@ -156,6 +299,21 @@ export default function App() {
   // Helper to trigger automatic generation for a specific slot
   const triggerAutoGenerate = async (targetSlot) => {
     if (!targetSlot) return;
+
+    if (pregeneratedCache[targetSlot.id]) {
+      // It's already in cache! The currentSlotId useEffect will handle setting 
+      // generatedChoices and deleting the cache, preventing race conditions.
+      showToast(`Instantly loaded pre-generated choices for Topic ${targetSlot.subtopicId}!`, "success");
+      return;
+    }
+
+    if (pregeneratingSlotId === targetSlot.id) {
+      setIsGenerating(true);
+      // Let the currentSlotId useEffect clear the choices, we just wait.
+      showToast(`Waiting for background generation to finish for Topic ${targetSlot.subtopicId}...`, "warning");
+      return;
+    }
+
     setIsGenerating(true);
     setShowExplanationIndex(null);
     setGeneratedChoices([]);
@@ -168,7 +326,9 @@ export default function App() {
         targetSlot.subtopicId,
         targetSlot.subtopicName,
         targetSlot.level,
-        isMockMode
+        providerMode,
+        geminiApiKey,
+        geminiModel
       );
       setGeneratedChoices(questions);
       showToast(`Automatically generated choices for Topic ${targetSlot.subtopicId}!`, "success");
@@ -184,6 +344,15 @@ export default function App() {
   // Generate Questions handler
   const handleGenerate = async () => {
     if (!currentSlot) return;
+
+    if (pregeneratingSlotId === currentSlot.id) {
+      setIsGenerating(true);
+      setShowExplanationIndex(null);
+      setGeneratedChoices([]);
+      showToast(`Waiting for background generation to finish...`, "warning");
+      return;
+    }
+
     setIsGenerating(true);
     setShowExplanationIndex(null);
     setGeneratedChoices([]);
@@ -196,7 +365,9 @@ export default function App() {
         currentSlot.subtopicId,
         currentSlot.subtopicName,
         currentSlot.level,
-        isMockMode
+        providerMode,
+        geminiApiKey,
+        geminiModel
       );
       setGeneratedChoices(questions);
       showToast(`Successfully generated 5 multiple-choice questions!`, "success");
@@ -363,6 +534,15 @@ export default function App() {
     exportQuestionBankToDocx(sortedQuestions);
   };
 
+  const handleExportZip = () => {
+    const sortedQuestions = [...questionsBank].sort((a, b) => {
+      const idxA = slots.findIndex(s => s.id === a.id);
+      const idxB = slots.findIndex(s => s.id === b.id);
+      return idxA - idxB;
+    });
+    exportQuestionsToZip(sortedQuestions);
+  };
+
   // Calculate Progress Stats
   const totalSlots = slots.length;
   const completedSlots = slots.filter(s => questionsBank.some(q => q.id === s.id)).length;
@@ -523,54 +703,90 @@ export default function App() {
         {/* Ollama Connection Settings Dashboard */}
         <section className="ollama-card">
           <div className="form-group">
-            <label>Local Ollama API Endpoint</label>
-            <input 
-              type="text" 
-              value={ollamaHost} 
-              onChange={(e) => setOllamaHost(e.target.value)} 
-              placeholder="e.g. http://localhost:11434"
-              disabled={isMockMode}
-            />
-          </div>
-          <div className="form-group">
-            <label>Target LLM Model</label>
-            <input 
-              type="text" 
-              value={ollamaModel} 
-              onChange={(e) => setOllamaModel(e.target.value)} 
-              placeholder="e.g. llama3"
-              disabled={isMockMode}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>Mode Toggle</label>
-            <div className="toggle-wrapper">
-              <label className="toggle-switch">
-                <input 
-                  type="checkbox" 
-                  checked={isMockMode}
-                  onChange={(e) => setIsMockMode(e.target.checked)}
-                />
-                <span className="toggle-slider"></span>
-              </label>
-              <div className="status-dot-wrapper">
-                <span className={`status-dot ${ollamaStatus}`}></span>
-                {isMockMode ? "Mock Mode" : "Ollama Mode"}
-              </div>
-            </div>
+            <label>AI Provider Mode</label>
+            <select 
+              value={providerMode} 
+              onChange={(e) => setProviderMode(e.target.value)}
+              className="settings-select"
+              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}
+            >
+              <option value="mock">Mock Database (Instant)</option>
+              <option value="gemini">Google Gemini API</option>
+              <option value="ollama">Local Ollama LLM</option>
+            </select>
           </div>
 
-          <div className="form-group" style={{ justifyContent: "flex-end" }}>
-            <button 
-              className="btn btn-secondary"
-              onClick={checkOllamaConnection}
-              disabled={isMockMode}
-            >
-              <RefreshCw size={14} />
-              Ping
-            </button>
+          {providerMode === "ollama" && (
+            <>
+              <div className="form-group">
+                <label>Local Ollama API Endpoint</label>
+                <input 
+                  type="text" 
+                  value={ollamaHost} 
+                  onChange={(e) => setOllamaHost(e.target.value)} 
+                  placeholder="e.g. http://localhost:11434"
+                />
+              </div>
+              <div className="form-group">
+                <label>Target LLM Model</label>
+                <input 
+                  type="text" 
+                  value={ollamaModel} 
+                  onChange={(e) => setOllamaModel(e.target.value)} 
+                  placeholder="e.g. llama3"
+                />
+              </div>
+            </>
+          )}
+
+          {providerMode === "gemini" && (
+            <>
+              <div className="form-group">
+                <label>Gemini API Key</label>
+                <input 
+                  type="password" 
+                  value={geminiApiKey} 
+                  onChange={(e) => setGeminiApiKey(e.target.value)} 
+                  placeholder="Enter your Google AI Studio API key"
+                />
+              </div>
+              <div className="form-group">
+                <label>Gemini Model</label>
+                <select 
+                  value={geminiModel} 
+                  onChange={(e) => setGeminiModel(e.target.value)}
+                  className="settings-select"
+                  style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid var(--border-color)', backgroundColor: 'var(--bg-card)', color: 'var(--text-primary)' }}
+                >
+                  <option value="gemini-1.5-flash">Gemini 1.5 Flash (Default/Lite)</option>
+                  <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                  <option value="gemini-1.0-pro">Gemini 1.0 Pro (Legacy)</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          <div className="form-group" style={{ justifyContent: "space-between", alignItems: "center" }}>
+            <div className="status-dot-wrapper">
+              <span className={`status-dot ${ollamaStatus}`}></span>
+              <span style={{ fontSize: '0.8rem' }}>
+                {providerMode === "mock" ? "Mock Mode Active" : 
+                 providerMode === "gemini" ? (geminiApiKey ? "Gemini Key Provided" : "Missing API Key") : 
+                 "Ollama " + ollamaStatus}
+              </span>
+            </div>
+            {providerMode === "ollama" && (
+              <button 
+                className="btn btn-secondary"
+                onClick={checkOllamaConnection}
+              >
+                <RefreshCw size={14} />
+                Ping
+              </button>
+            )}
           </div>
+
+
         </section>
 
         {/* Active Target Prompter Dashboard */}
@@ -831,6 +1047,16 @@ export default function App() {
           >
             <Download size={14} />
             Export to Word (.docx)
+          </button>
+
+          <button 
+            className="btn btn-secondary"
+            style={{ width: "100%", justifyContent: "center", marginBottom: "10px" }}
+            onClick={handleExportZip}
+            disabled={questionsBank.length === 0}
+          >
+            <Archive size={14} />
+            Export ZIP (Debug individual DOCX)
           </button>
           
           {questionsBank.length > 0 && (

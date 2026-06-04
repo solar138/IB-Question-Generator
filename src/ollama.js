@@ -354,15 +354,15 @@ function generateProceduralMockQuestions(subtopicId, subtopicName, level) {
           explanation = "In many physical graphs, the integral or area under the curve represents an accumulated product, such as Work = Force x Distance in " + subtopicName + ".";
           break;
         default:
-          questionText = `Which statement correctly explains the microscopic behavior of a system during an increase in temperature in ${subtopicName}?`;
+          questionText = `Which of the following describes a fundamental principle commonly applied in ${subtopicName}?`;
           options = {
-            A: "The average kinetic energy and particle speed increase, causing more frequent collisions.",
-            B: "Particles expand and increase in diameter, increasing volume.",
-            C: "Intermolecular bindings lock in place, turning the substance rigid.",
-            D: "The nuclear charge increases, attracting shell electrons closer."
+            A: "The system's total energy and momentum are conserved in the absence of external unbalanced forces or torques.",
+            B: "The microscopic particles expand continuously to fill any available vacuum.",
+            C: "The physical laws undergo a phase transition at macroscopic scales.",
+            D: "The measured parameters remain entirely subjective to the observer's frame."
           };
           answer = "A";
-          explanation = "Microscopically, thermal energy is stored as the kinetic energy of particles. Higher temperature directly correlates with increased average kinetic energy and velocity.";
+          explanation = "In " + subtopicName + ", as in most classical physics frameworks, conservation laws of energy and momentum form the foundation for analyzing system dynamics.";
           break;
       }
     }
@@ -405,24 +405,17 @@ function shuffleQuestion(q) {
   };
 }
 
-// Main generation function
-export async function generateQuestions(host, model, topicId, subtopicId, subtopicName, level, isMock) {
-  if (isMock) {
+export async function generateQuestions(host, model, topicId, subtopicId, subtopicName, level, providerMode, geminiApiKey, geminiModel) {
+  if (providerMode === "mock" || providerMode === true) {
     let selectedQuestions = [];
-    // Check if we have specific high-quality mock questions
     if (MOCK_QUESTIONS_DB[subtopicId] && MOCK_QUESTIONS_DB[subtopicId][level]) {
-      // Shuffle slightly or return as is (we want exactly 5)
       selectedQuestions = MOCK_QUESTIONS_DB[subtopicId][level];
     } else {
-      // Otherwise generate realistic procedural mock questions
       selectedQuestions = generateProceduralMockQuestions(subtopicId, subtopicName, level);
     }
-    
-    // Shuffle the options key letters for all questions
     return selectedQuestions.map(shuffleQuestion).slice(0, 5);
   }
 
-  // Actual Ollama integration
   const cleanedLevel = level.toLowerCase();
   const promptText = `For IB Physics HL topic ${subtopicId} (${subtopicName}), create 5 multiple choice questions, with answer and explanation, that will fit the ${cleanedLevel} level of bloom's taxonomy.
 Each question must have exactly four answer choices (A, B, C, D).
@@ -430,6 +423,7 @@ You must output your response as a JSON object matching this schema:
 {
   "questions": [
     {
+      "thought_scratchpad": "Write a step-by-step physical and mathematical derivation here before doing anything else. For example, write down the relevant equations, perform the algebra, check inequality signs carefully, and verify the conclusion. Be extremely rigorous and detail-oriented.",
       "question": "Clear and precise physics multiple choice question text",
       "options": {
         "A": "Option A text",
@@ -437,67 +431,112 @@ You must output your response as a JSON object matching this schema:
         "C": "Option C text",
         "D": "Option D text"
       },
-      "answer": "A", // must be exactly 'A', 'B', 'C', or 'D'
-      "explanation": "Brief explanation of why this option is correct and why others are incorrect"
+      "explanation": "Brief, finalized explanation of why the option is correct. DO NOT include any of your internal thought process, self-corrections, or drafting steps here. Those belong STRICTLY in the thought_scratchpad.",
+      "answer": "A" // must be exactly 'A', 'B', 'C', or 'D'
     }
   ]
 }
 
-Ensure the questions are accurate for the IB Physics HL syllabus, use correct terminology, and the specified cognitive level (${cleanedLevel}). Do not include any text outside the JSON object.`;
+Ensure the questions are accurate for the IB Physics HL syllabus, use correct terminology, and the specified cognitive level (${cleanedLevel}).
+
+PHYSICS ACCURACY & LOGICAL RIGOR RULES:
+- STRICTLY limit scope to the IB Physics syllabus. Do NOT include IB Chemistry concepts (e.g., Gibbs Free Energy, Enthalpy, exothermic/endothermic reactions) even for overlapping topic names like Thermodynamics.
+- Perform step-by-step mathematical reasoning and physics verification for each question before defining the options.
+- ALL reasoning, self-correction, drafting, and step-by-step verification MUST go in the "thought_scratchpad" field. The "explanation" field MUST only contain the polished, final explanation for the student. Do not let your internal monologue leak into the explanation or question text!
+- Double-check all formulas, equations, vector diagrams, signs, and relative shifts. Avoid sign errors and conceptual misunderstandings!
+
+LaTeX MATH FORMATTING RULES:
+- Use LaTeX inline formatting (using single dollar signs, like $m$, $F$, $a$, $f_k$, $E_k = \\frac{1}{2}mv^2$) for all variable symbols, units, equations, and mathematical variables.
+- CRITICAL FOR JSON STRING COMPATIBILITY: In JSON strings, any backslash must be double-escaped. Therefore, you MUST write \\\\text{...} instead of \\text{...}, \\\\frac{...}{...} instead of \\frac{...}{...}, \\\\Delta instead of \\Delta, and so on. Failing to double-escape backslashes (\\\\) will result in JSON parsing errors or corrupted text (e.g., \\text being parsed as a tab character \\t followed by ext).
+
+Do not include any text outside the JSON object.`;
 
   try {
-    const url = `${host.replace(/\/$/, "")}/api/generate`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: model,
-        prompt: promptText,
-        max_tokens: 4096,
-        stream: false,
-        options: {
-          temperature: 0.7
-        },
-        format: "json"
-      })
-    });
+    let rawText = "";
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    if (providerMode === "gemini") {
+      if (!geminiApiKey) {
+        throw new Error("Gemini API key is required but not provided.");
+      }
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${geminiModel}:generateContent?key=${geminiApiKey}`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: {
+            responseMimeType: "application/json"
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error?.message || `Gemini API error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (!data.candidates || data.candidates.length === 0) {
+        throw new Error("No candidates returned from Gemini");
+      }
+      rawText = data.candidates[0].content.parts[0].text;
+      
+    } else {
+      // Default to Ollama
+      const url = `${host.replace(/\/$/, "")}/api/generate`;
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: model,
+          prompt: promptText,
+          max_tokens: 4096,
+          stream: false,
+          options: { temperature: 0.7 },
+          format: "json"
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      rawText = data.response;
     }
 
-    const data = await response.json();
-    const rawText = data.response;
+    // Fix common unescaped backslashes in LaTeX generated by LLMs before parsing
+    // 1. Fix all invalid JSON escapes (anything not " \ / b f n r t u)
+    rawText = rawText.replace(/(?<!\\)\\([^"\\/bfnrtu])/g, "\\\\$1");
+    // 2. Explicitly fix LaTeX commands that start with valid JSON escapes
+    rawText = rawText.replace(/(?<!\\)\\(beta|bf|bar|bot|bullet|big|frac|nu|neq|nabla|rho|right|rightarrow|Rightarrow|rangle|tau|text|times|theta|to|triangle|therefore|tilde|tan)/g, "\\\\$1");
+    // 3. Fix \u that is not followed by 4 hex digits (e.g. \uparrow)
+    rawText = rawText.replace(/(?<!\\)\\u(?![0-9a-fA-F]{4})/g, "\\\\u");
 
     // Parse with extreme robustness
     let parsedData;
     try {
       parsedData = JSON.parse(rawText.trim());
     } catch (e) {
-      // Attempt to extract JSON from raw response text if there was wrapper text
       const start = rawText.indexOf("{");
       const end = rawText.lastIndexOf("}");
       if (start !== -1 && end !== -1) {
         const jsonSub = rawText.substring(start, end + 1);
         parsedData = JSON.parse(jsonSub);
       } else {
-        throw new Error("Failed to parse JSON out of Ollama output");
+        throw new Error("Failed to parse JSON out of LLM output");
       }
     }
 
     // Normalize output structure
     if (!parsedData.questions || !Array.isArray(parsedData.questions)) {
-      throw new Error("Ollama output did not contain 'questions' array");
+      throw new Error("LLM output did not contain 'questions' array");
     }
 
     const normalizedQuestions = parsedData.questions.map((q, idx) => {
-      // Safety checks and mapping
       const questionText = q.question || `Question ${idx + 1} for ${subtopicId}`;
       let opts = q.options || { A: "Option A", B: "Option B", C: "Option C", D: "Option D" };
       
-      // If options are in array format, convert to object
       if (Array.isArray(opts)) {
         opts = {
           A: opts[0] || "Option A",
@@ -508,31 +547,30 @@ Ensure the questions are accurate for the IB Physics HL syllabus, use correct te
       }
 
       let ans = (q.answer || "A").toString().trim().toUpperCase();
-      if (!["A", "B", "C", "D"].includes(ans)) {
-        ans = "A"; // default fallback
-      }
+      if (!["A", "B", "C", "D"].includes(ans)) { ans = "A"; }
 
-      const expl = q.explanation || "No explanation provided.";
+      let expl = q.explanation || q.Explanation || q.reasoning || "";
+      let scratchpad = q.thought_scratchpad || q.Thought_scratchpad || "";
+      
+      let finalExplanation = "No explanation provided.";
+      if (expl) {
+        finalExplanation = expl;
+      } else if (scratchpad) {
+        finalExplanation = scratchpad;
+      }
 
       return {
         question: questionText,
         options: opts,
         answer: ans,
-        explanation: expl
+        explanation: finalExplanation
       };
     });
-
-    // Make sure we have exactly 5 questions (or fill with procedural mock if less)
-    while (normalizedQuestions.length < 5) {
-      const fallbackList = generateProceduralMockQuestions(subtopicId, subtopicName, level);
-      normalizedQuestions.push(fallbackList[normalizedQuestions.length]);
-    }
 
     return normalizedQuestions.map(shuffleQuestion).slice(0, 5);
 
   } catch (error) {
-    console.error("Error querying Ollama API:", error);
-    // Return high-quality physics fallback and let user interface know
-    throw new Error(error.message || "Network error contacting Ollama");
+    console.error("Error querying LLM API:", error);
+    throw new Error(error.message || "Network error contacting LLM");
   }
 }
